@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deadline Rule Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: #2d3748;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: #1a202c;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: #718096;
+      font-size: 1.1rem;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      color: #4a5568;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: #f7fafc;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #4299e1;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    }
+
+    .form-group select {
+      min-height: 120px;
+    }
+
+    .form-group select[multiple] {
+      background: #f7fafc;
+    }
+
+    .form-group select[multiple] option {
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      border-radius: 4px;
+    }
+
+    .form-group select[multiple] option:checked {
+      background: #4299e1;
+      color: white;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: #f7fafc;
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 1.25rem;
+      height: 1.25rem;
+      accent-color: #4299e1;
+    }
+
+    .checkbox-group label {
+      font-weight: 500;
+      color: #4a5568;
+      margin: 0;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      padding: 0.875rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 140px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(66, 153, 225, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(66, 153, 225, 0.5);
+    }
+
+    .btn-secondary {
+      background: #f7fafc;
+      color: #4a5568;
+      border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #edf2f7;
+      border-color: #cbd5e0;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 1rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      border-radius: 1px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.5rem;
+      background: #f7fafc;
+      border-radius: 8px;
+      border-left: 4px solid #4299e1;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.25rem;
+      top: 1.25rem;
+      width: 12px;
+      height: 12px;
+      background: #4299e1;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .timeline-item strong {
+      color: #2d3748;
+      font-weight: 600;
+    }
+
+    .week-info {
+      font-size: 0.875rem;
+      color: #718096;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+    }
+
+    .chart-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+
+    .chart-subtitle {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #718096;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 450px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f7fafc;
+      cursor: grab;
+    }
+
+    .chart-svg:active {
+      cursor: grabbing;
+    }
+
+    .zoom-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: #f7fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .zoom-btn {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      background: white;
+      color: #4a5568;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: auto;
+    }
+
+    .zoom-btn:hover {
+      background: #edf2f7;
+      border-color: #a0aec0;
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    .zoom-btn.active {
+      background: #4299e1;
+      color: white;
+      border-color: #3182ce;
+    }
+
+    .zoom-level {
+      padding: 0.5rem 1rem;
+      background: #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #2d3748;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .zoom-slider {
+      margin: 0 0.5rem;
+      width: 100px;
+    }
+
+    .zoom-presets {
+      display: flex;
+      gap: 0.25rem;
+      margin-left: 0.5rem;
+    }
+
+    .zoom-info {
+      font-size: 0.75rem;
+      color: #718096;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f7fafc;
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #4299e1;
+    }
+
+    .legend-line {
+      width: 20px;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .legend-default {
+      background: #4299e1;
+    }
+
+    .legend-temporary {
+      background: #e53e3e;
+    }
+
+    .explanation {
+      background: #edf2f7;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+      border-left: 4px solid #4299e1;
+    }
+
+    .explanation strong {
+      color: #2d3748;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .explanation p {
+      margin-top: 0.75rem;
+      line-height: 1.6;
+      color: #4a5568;
+    }
+
+    .error {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 2px solid #feb2b2;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .form-card {
+        padding: 1.5rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .chart-legend {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Calendar Styles */
+    .calendar-container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+    }
+
+    .calendar-title {
+      text-align: center;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .calendar-subtitle {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #718096;
+      margin-bottom: 2rem;
+      font-weight: 500;
+      letter-spacing: 0.025em;
+      text-transform: uppercase;
+    }
+
+    .calendar-grid {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 0.5rem;
+    }
+
+    .month-calendar {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      min-width: 250px;
+      max-width: 280px;
+      flex: 0 0 auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+    }
+
+    @media (max-width: 768px) {
+      .calendar-grid {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .month-calendar {
+        min-width: 280px;
+        max-width: 320px;
+      }
+    }
+
+    .month-header {
+      background: #f7fafc;
+      color: #2d3748;
+      padding: 1rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .calendar-weekday {
+      padding: 0.5rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: white;
+    }
+
+    .calendar-day {
+      padding: 0.75rem;
+      text-align: center;
+      min-height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      font-weight: 500;
+      position: relative;
+      cursor: default;
+      border-right: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+      transition: all 0.2s ease;
+    }
+
+    .calendar-day:nth-child(7n) {
+      border-right: none;
+    }
+
+    .calendar-day.other-month {
+      color: #cbd5e0;
+      background: #fafafa;
+    }
+
+    .calendar-day.meeting-date {
+      background: #667eea;
+      color: white;
+      font-weight: 700;
+      position: relative;
+    }
+
+    .calendar-day.meeting-date::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .calendar-day.scic-deadline {
+      background: #e53e3e;
+      color: white;
+      font-weight: 700;
+    }
+
+    .calendar-day.hop-100-deadline {
+      background: #38a169;
+      color: white;
+      font-weight: 700;
+    }
+
+    .calendar-day.hop-50-deadline {
+      background: #d69e2e;
+      color: white;
+      font-weight: 700;
+    }
+
+    .calendar-notes {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f7fafc;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: #4a5568;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .calendar-note {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background: white;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .calendar-note-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .note-meeting { background: #667eea; }
+    .note-scic { background: #e53e3e; }
+    .note-hop-100 { background: #38a169; }
+    .note-hop-50 { background: #d69e2e; }
+
+    .calendar-legend {
+      display: none; /* Hide the old legend */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Deadline Rule Simulator</h1>
+    </div>
+
+    <div class="form-card">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="meetingDate">Meeting Date</label>
+          <input type="date" id="meetingDate" value="2025-12-30" />
+        </div>
+
+        <div class="form-group">
+          <label for="defaultStart">Default Rule Start Date</label>
+          <input type="date" id="defaultStart" value="2025-01-01" />
+        </div>
+
+        <div class="form-group">
+          <label for="defaultEnd">Default Rule End Date</label>
+          <input type="date" id="defaultEnd" value="2025-12-31" />
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="holidays">Holidays in SCIC and 100% HOP Week</label>
+          <select id="holidays" multiple>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="holidays50">Holidays in 50% HOP Week</label>
+          <select id="holidays50" multiple>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="tempStart">Temporary Rule Start Date</label>
+          <input type="date" id="tempStart" value="2025-12-24" />
+        </div>
+
+        <div class="form-group">
+          <label for="tempEnd">Temporary Rule End Date</label>
+          <input type="date" id="tempEnd" value="2026-01-06" />
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="defineSCIC">Define SCIC Cancellation Deadline</label>
+          <input type="date" id="defineSCIC" value="2025-12-28" />
+        </div>
+
+        <div class="form-group">
+          <label for="defineHOP50">Define HOP - 100% Deadline</label>
+          <input type="date" id="defineHOP50" value="2025-12-29" />
+        </div>
+
+        <div class="form-group">
+          <label for="defineHOP100">Define HOP - 50% Deadline</label>
+          <input type="date" id="defineHOP100" value="2025-12-30" />
+        </div>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="disableTemporary" />
+        <label for="disableTemporary">Enable Temporary Rule</label>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="calculateDeadlines()">Calculate Deadlines</button>
+        <button class="btn btn-secondary" onclick="resetFields()">Reset</button>
+      </div>
+    </div>
+
+    <div id="output"></div>
+  </div>
+
+  <script>
+    // Global zoom and pan state
+    let currentZoom = 1;
+    let currentPanX = 0;
+    let currentPanY = 0;
+    let currentSvg = null;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let originalViewBox = { x: 0, y: 0, width: 1000, height: 450 };
+
+    function setupSvgInteractions(svg) {
+      currentSvg = svg;
+      
+      // Mouse wheel zoom
+      svg.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) / rect.width * originalViewBox.width;
+        const mouseY = (e.clientY - rect.top) / rect.height * originalViewBox.height;
+        
+        const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
+        zoomToPoint(mouseX, mouseY, zoomDelta);
+      });
+
+      // Double-click to zoom in at point
+      svg.addEventListener('dblclick', (e) => {
+        const rect = svg.getBoundingClientRect();
+        const mouseX = (e.clientX - rect.left) / rect.width * originalViewBox.width;
+        const mouseY = (e.clientY - rect.top) / rect.height * originalViewBox.height;
+        
+        zoomToPoint(mouseX, mouseY, 2);
+      });
+
+      // Mouse drag to pan
+      svg.addEventListener('mousedown', (e) => {
+        if (e.detail === 2) return; // Ignore mousedown from double-click
+        isDragging = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        svg.style.cursor = 'grabbing';
+      });
+
+      svg.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const deltaX = (e.clientX - lastMouseX) / currentZoom;
+        const deltaY = (e.clientY - lastMouseY) / currentZoom;
+        
+        currentPanX -= deltaX;
+        currentPanY -= deltaY;
+        
+        updateViewBox();
+        
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      });
+
+      svg.addEventListener('mouseup', () => {
+        isDragging = false;
+        svg.style.cursor = 'grab';
+      });
+
+      svg.addEventListener('mouseleave', () => {
+        isDragging = false;
+        svg.style.cursor = 'grab';
+      });
+
+      // Touch support for mobile
+      svg.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          lastMouseX = e.touches[0].clientX;
+          lastMouseY = e.touches[0].clientY;
+        }
+      });
+
+      svg.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        e.preventDefault();
+        
+        const deltaX = (e.touches[0].clientX - lastMouseX) / currentZoom;
+        const deltaY = (e.touches[0].clientY - lastMouseY) / currentZoom;
+        
+        currentPanX -= deltaX;
+        currentPanY -= deltaY;
+        
+        updateViewBox();
+        
+        lastMouseX = e.touches[0].clientX;
+        lastMouseY = e.touches[0].clientY;
+      });
+
+      svg.addEventListener('touchend', () => {
+        isDragging = false;
+      });
+    }
+
+    function setZoom(zoomLevel) {
+      currentZoom = Math.min(Math.max(zoomLevel, 0.1), 10);
+      updateViewBox();
+      updateZoomLevel();
+      updateZoomControls();
+    }
+
+    function setZoomFromSlider(value) {
+      setZoom(value / 100);
+    }
+
+    function fitToTimeline() {
+      // Zoom to show all important elements with some padding
+      currentZoom = 0.8;
+      currentPanX = 0;
+      currentPanY = 0;
+      updateViewBox();
+      updateZoomLevel();
+      updateZoomControls();
+    }
+
+    function zoomIn() {
+      currentZoom = Math.min(currentZoom * 1.5, 10);
+      updateViewBox();
+      updateZoomLevel();
+      updateZoomControls();
+    }
+
+    function zoomOut() {
+      currentZoom = Math.max(currentZoom / 1.5, 0.1);
+      updateViewBox();
+      updateZoomLevel();
+      updateZoomControls();
+    }
+
+    function resetZoom() {
+      currentZoom = 1;
+      currentPanX = 0;
+      currentPanY = 0;
+      updateViewBox();
+      updateZoomLevel();
+      updateZoomControls();
+    }
+
+    function zoomToPoint(mouseX, mouseY, zoomDelta) {
+      const newZoom = Math.min(Math.max(currentZoom * zoomDelta, 0.1), 10);
+      
+      // Calculate pan offset to zoom towards mouse position
+      const zoomRatio = newZoom / currentZoom;
+      currentPanX = mouseX - (mouseX - currentPanX) * zoomRatio;
+      currentPanY = mouseY - (mouseY - currentPanY) * zoomRatio;
+      
+      currentZoom = newZoom;
+      updateViewBox();
+      updateZoomLevel();
+      updateZoomControls();
+    }
+
+    function updateViewBox() {
+      if (!currentSvg) return;
+      
+      const width = originalViewBox.width / currentZoom;
+      const height = originalViewBox.height / currentZoom;
+      
+      // Constrain pan to reasonable bounds
+      const maxPanX = originalViewBox.width * 0.5;
+      const maxPanY = originalViewBox.height * 0.5;
+      currentPanX = Math.max(-maxPanX, Math.min(maxPanX, currentPanX));
+      currentPanY = Math.max(-maxPanY, Math.min(maxPanY, currentPanY));
+      
+      const x = currentPanX - width / 2 + originalViewBox.width / 2;
+      const y = currentPanY - height / 2 + originalViewBox.height / 2;
+      
+      currentSvg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+    }
+
+    function updateZoomLevel() {
+      const zoomLevelElement = document.getElementById('zoomLevel');
+      const zoomSlider = document.getElementById('zoomSlider');
+      
+      if (zoomLevelElement) {
+        zoomLevelElement.textContent = `${Math.round(currentZoom * 100)}%`;
+      }
+      
+      if (zoomSlider) {
+        zoomSlider.value = Math.round(currentZoom * 100);
+      }
+    }
+
+    function updateZoomControls() {
+      // Update preset button states
+      const presetButtons = document.querySelectorAll('.zoom-presets .zoom-btn');
+      presetButtons.forEach(btn => {
+        btn.classList.remove('active');
+        const zoomValue = parseFloat(btn.textContent) / 100;
+        if (Math.abs(currentZoom - zoomValue) < 0.01) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    function calculateWeeksBetween(fromDate, toDate) {
+      // Calculate full weeks between two dates
+      const timeDiff = Math.abs(toDate.getTime() - fromDate.getTime());
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      return Math.floor(daysDiff / 7);
+    }
+
+    function getWeekStart(date) {
+      // Get Monday of the week containing the given date
+      const weekStart = new Date(date);
+      const day = weekStart.getDay();
+      const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      weekStart.setDate(diff);
+      return weekStart;
+    }
+
+    function createTimelineChart(dates, labels, isTemporaryRule = false) {
+      // Reset zoom state for new chart
+      currentZoom = 1;
+      currentPanX = 0;
+      currentPanY = 0;
+      
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'chart-svg');
+      svg.setAttribute('viewBox', '0 0 1000 450');
+      
+      // Setup zoom and pan interactions
+      setTimeout(() => setupSvgInteractions(svg), 100);
+
+      // Get temporary rule dates for red section
+      const tempStart = new Date(document.getElementById("tempStart").value);
+      const tempEnd = new Date(document.getElementById("tempEnd").value);
+      const meetingDate = new Date(document.getElementById("meetingDate").value);
+      const disableTemporary = document.getElementById("disableTemporary").checked;
+
+      // Find date range
+      const allDates = dates.map(d => new Date(d));
+      
+      // Include temporary rule dates in the range calculation if they should be shown
+      if (disableTemporary) {
+        allDates.push(tempStart, tempEnd);
+      }
+      
+      const minDate = new Date(Math.min(...allDates));
+      const maxDate = new Date(Math.max(...allDates));
+      
+      // Add padding to date range
+      const padding = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+      const startDate = new Date(minDate.getTime() - padding);
+      const endDate = new Date(maxDate.getTime() + padding);
+      const totalDays = (endDate - startDate) / (24 * 60 * 60 * 1000);
+
+      // Create timeline base
+      const timelineY = 200;
+      const timelineStart = 50;
+      const timelineEnd = 950;
+      const timelineLength = timelineEnd - timelineStart;
+
+      // Draw main timeline (default blue)
+      const timeline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      timeline.setAttribute('x1', timelineStart);
+      timeline.setAttribute('y1', timelineY);
+      timeline.setAttribute('x2', timelineEnd);
+      timeline.setAttribute('y2', timelineY);
+      timeline.setAttribute('stroke', '#4299e1');
+      timeline.setAttribute('stroke-width', '6');
+      svg.appendChild(timeline);
+
+      // Draw red section for temporary rule period if applicable
+      if (disableTemporary) {
+        const tempStartPos = timelineStart + (tempStart - startDate) / (endDate - startDate) * timelineLength;
+        const tempEndPos = timelineStart + (tempEnd - startDate) / (endDate - startDate) * timelineLength;
+        
+        // Ensure positions are within timeline bounds
+        const clampedStartPos = Math.max(timelineStart, Math.min(timelineEnd, tempStartPos));
+        const clampedEndPos = Math.max(timelineStart, Math.min(timelineEnd, tempEndPos));
+        
+        if (clampedEndPos > clampedStartPos) {
+          const tempTimeline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          tempTimeline.setAttribute('x1', clampedStartPos);
+          tempTimeline.setAttribute('y1', timelineY);
+          tempTimeline.setAttribute('x2', clampedEndPos);
+          tempTimeline.setAttribute('y2', timelineY);
+          tempTimeline.setAttribute('stroke', '#e53e3e');
+          tempTimeline.setAttribute('stroke-width', '8');
+          svg.appendChild(tempTimeline);
+          
+          // Add temporary rule period labels
+          const tempStartLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          tempStartLabel.setAttribute('x', clampedStartPos);
+          tempStartLabel.setAttribute('y', timelineY - 20);
+          tempStartLabel.setAttribute('text-anchor', 'middle');
+          tempStartLabel.setAttribute('fill', '#e53e3e');
+          tempStartLabel.setAttribute('font-size', '10');
+          tempStartLabel.setAttribute('font-weight', '600');
+          tempStartLabel.textContent = 'Temp Start';
+          svg.appendChild(tempStartLabel);
+          
+          const tempEndLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          tempEndLabel.setAttribute('x', clampedEndPos);
+          tempEndLabel.setAttribute('y', timelineY - 20);
+          tempEndLabel.setAttribute('text-anchor', 'middle');
+          tempEndLabel.setAttribute('fill', '#e53e3e');
+          tempEndLabel.setAttribute('font-size', '10');
+          tempEndLabel.setAttribute('font-weight', '600');
+          tempEndLabel.textContent = 'Temp End';
+          svg.appendChild(tempEndLabel);
+        }
+      }
+
+      // Define colors for each deadline type
+      const deadlineColors = {
+        'SCIC 100%': '#e53e3e',      // Red
+        'HOP 100%': '#38a169',       // Green
+        'HOP 50%': '#d69e2e',        // Yellow/Orange
+        'Meeting Date': '#805ad5'     // Purple
+      };
+
+      // Calculate positions and sort by position to handle overlapping labels
+      const positionData = dates.map((date, index) => {
+        const dateObj = new Date(date);
+        const position = timelineStart + (dateObj - startDate) / (endDate - startDate) * timelineLength;
+        return {
+          date: dateObj,
+          position: position,
+          label: labels[index],
+          index: index
+        };
+      }).sort((a, b) => a.position - b.position);
+
+      // Smart positioning to prevent overlaps
+      const minLabelDistance = 80; // Minimum pixels between labels
+      const adjustedPositions = [];
+      
+      positionData.forEach((item, sortedIndex) => {
+        let adjustedPosition = item.position;
+        
+        // Check for overlaps with previous labels
+        for (let i = adjustedPositions.length - 1; i >= 0; i--) {
+          const prevItem = adjustedPositions[i];
+          const distance = adjustedPosition - prevItem.adjustedPosition;
+          
+          if (distance < minLabelDistance) {
+            adjustedPosition = prevItem.adjustedPosition + minLabelDistance;
+          }
+        }
+        
+        adjustedPositions.push({
+          ...item,
+          adjustedPosition: adjustedPosition,
+          originalPosition: item.position
+        });
+      });
+
+      // Add date markers and labels with smart positioning
+      adjustedPositions.forEach((item, sortedIndex) => {
+        const { date: dateObj, position: originalPosition, adjustedPosition, label, index } = item;
+        const color = deadlineColors[label] || '#4299e1';
+        
+        // Calculate label Y position with staggered heights for very close dates
+        const labelYOffsets = [-50, -70, -90, -110, -130];
+        const labelY = timelineY + labelYOffsets[sortedIndex % labelYOffsets.length];
+        
+        // Draw vertical line at original position
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', originalPosition);
+        line.setAttribute('y1', timelineY - 15);
+        line.setAttribute('x2', originalPosition);
+        line.setAttribute('y2', timelineY + 15);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', '3');
+        svg.appendChild(line);
+
+        // Draw circle at original position
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', originalPosition);
+        circle.setAttribute('cy', timelineY);
+        circle.setAttribute('r', '8');
+        circle.setAttribute('fill', color);
+        circle.setAttribute('stroke', '#ffffff');
+        circle.setAttribute('stroke-width', '3');
+        svg.appendChild(circle);
+
+        // Draw connecting line from circle to label (using adjusted position)
+        const connector = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        connector.setAttribute('x1', originalPosition);
+        connector.setAttribute('y1', timelineY - 8);
+        connector.setAttribute('x2', adjustedPosition);
+        connector.setAttribute('y2', labelY + 15);
+        connector.setAttribute('stroke', color);
+        connector.setAttribute('stroke-width', '1');
+        connector.setAttribute('stroke-dasharray', '3,3');
+        connector.setAttribute('opacity', '0.7');
+        svg.appendChild(connector);
+
+        // Add label above with background at adjusted position
+        const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const labelWidth = label.length * 9;
+        labelBg.setAttribute('x', adjustedPosition - labelWidth/2);
+        labelBg.setAttribute('y', labelY - 14);
+        labelBg.setAttribute('width', labelWidth);
+        labelBg.setAttribute('height', '18');
+        labelBg.setAttribute('fill', 'white');
+        labelBg.setAttribute('stroke', color);
+        labelBg.setAttribute('stroke-width', '1');
+        labelBg.setAttribute('rx', '4');
+        labelBg.setAttribute('opacity', '0.95');
+        svg.appendChild(labelBg);
+
+        const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        labelText.setAttribute('x', adjustedPosition);
+        labelText.setAttribute('y', labelY);
+        labelText.setAttribute('text-anchor', 'middle');
+        labelText.setAttribute('fill', color);
+        labelText.setAttribute('font-size', '12');
+        labelText.setAttribute('font-weight', '600');
+        labelText.textContent = label;
+        svg.appendChild(labelText);
+
+        // Add date below at adjusted position to prevent overlap
+        const dateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        dateText.setAttribute('x', adjustedPosition);
+        dateText.setAttribute('y', timelineY + 35);
+        dateText.setAttribute('text-anchor', 'middle');
+        dateText.setAttribute('fill', color);
+        dateText.setAttribute('font-size', '11');
+        dateText.setAttribute('font-weight', '500');
+        dateText.textContent = formatDateShort(dateObj);
+        svg.appendChild(dateText);
+      });
+
+      // Add month labels on timeline
+      const currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        const position = timelineStart + (currentDate - startDate) / (endDate - startDate) * timelineLength;
+        
+        const monthLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        monthLabel.setAttribute('x', position);
+        monthLabel.setAttribute('y', timelineY + 70);
+        monthLabel.setAttribute('text-anchor', 'middle');
+        monthLabel.setAttribute('fill', '#718096');
+        monthLabel.setAttribute('font-size', '10');
+        monthLabel.textContent = formatMonthYear(currentDate);
+        svg.appendChild(monthLabel);
+
+        // Add vertical grid line
+        const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        gridLine.setAttribute('x1', position);
+        gridLine.setAttribute('y1', 70);
+        gridLine.setAttribute('x2', position);
+        gridLine.setAttribute('y2', 330);
+        gridLine.setAttribute('stroke', '#f1f5f9');
+        gridLine.setAttribute('stroke-width', '1');
+        gridLine.setAttribute('stroke-dasharray', '2,2');
+        svg.appendChild(gridLine);
+
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate.setDate(1);
+      }
+
+      return svg;
+    }
+
+    function formatDateShort(date) {
+      return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    }
+
+    function formatMonthYear(date) {
+      return date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+    }
+
+    function calculateDeadlines() {
+      const disableTemporary = document.getElementById("disableTemporary").checked;
+      const meetingDate = new Date(document.getElementById("meetingDate").value);
+      const tempStart = new Date(document.getElementById("tempStart").value);
+      const tempEnd = new Date(document.getElementById("tempEnd").value);
+      
+      // Check if meeting date is within temporary rule range when temporary rule is enabled
+      const isWithinTempRange = meetingDate >= tempStart && meetingDate <= tempEnd;
+      const useTemporaryRule = disableTemporary && isWithinTempRange;
+      
+      if (useTemporaryRule) {
+        const scic = document.getElementById("defineSCIC").value;
+        const hop100 = document.getElementById("defineHOP50").value;
+        const hop50 = document.getElementById("defineHOP100").value;
+
+        if (!scic || !hop100 || !hop50) {
+          document.getElementById("output").innerHTML = `
+            <div class="result-card fade-in">
+              <div class="error">
+                Please select all deadline dates (SCIC and HOP deadlines) to use the temporary rule
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        const dates = [scic, hop100, hop50, meetingDate.toISOString().split('T')[0]];
+        const labels = ['SCIC 100%', 'HOP 100%', 'HOP 50%', 'Meeting Date'];
+        
+        const chartSvg = createTimelineChart(dates, labels, true);
+        
+        // Calculate weeks between for display
+        const meetingWeekStart = getWeekStart(meetingDate);
+        const scicWeeks = calculateWeeksBetween(new Date(scic), meetingWeekStart);
+        const hop100Weeks = calculateWeeksBetween(new Date(hop100), meetingWeekStart);
+        const hop50Weeks = calculateWeeksBetween(new Date(hop50), meetingWeekStart);
+        
+        // Create calendar view
+        const calendarHTML = createCalendarView(meetingDate, new Date(scic), new Date(hop100), new Date(hop50));
+        
+        const output = document.getElementById("output");
+        output.innerHTML = `
+          <div class="result-card fade-in">
+            <div class="timeline">
+              <div class="timeline-item">
+                <strong>Meeting Date:</strong> ${formatDate(meetingDate)}
+                <div class="week-info">Meeting week: ${formatDateRange(meetingWeekStart, new Date(meetingWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000))}</div>
+              </div>
+              <div class="timeline-item">
+                <strong>Defined SCIC 100% Deadline:</strong> ${formatDate(new Date(scic))}
+                <div class="week-info">${scicWeeks} full week${scicWeeks !== 1 ? 's' : ''} between SCIC deadline and meeting week</div>
+              </div>
+              <div class="timeline-item">
+                <strong>Defined HOP - 100% Deadline:</strong> ${formatDate(new Date(hop100))}
+                <div class="week-info">${hop100Weeks} full week${hop100Weeks !== 1 ? 's' : ''} between HOP 100% deadline and meeting week</div>
+              </div>
+              <div class="timeline-item">
+                <strong>Defined HOP - 50% Deadline:</strong> ${formatDate(new Date(hop50))}
+                <div class="week-info">${hop50Weeks} full week${hop50Weeks !== 1 ? 's' : ''} between HOP 50% deadline and meeting week</div>
+              </div>
+            </div>
+            <div class="explanation">
+              <strong>How deadlines are applied:</strong>
+              <p>Using manually defined override dates due to active Temporary Rule (meeting date is within temporary rule period).</p>
+            </div>
+          </div>
+          <div class="chart-container fade-in">
+            <div class="chart-title">Key Interpretation Deadlines and Meeting Date</div>
+            <div class="chart-subtitle">Use controls to zoom, or scroll mouse wheel and drag to navigate</div>
+            <div class="zoom-controls">
+              <button class="zoom-btn" onclick="zoomOut()">−</button>
+              <input type="range" class="zoom-slider" id="zoomSlider" min="10" max="1000" value="100" step="10" onchange="setZoomFromSlider(this.value)">
+              <button class="zoom-btn" onclick="zoomIn()">+</button>
+              <div class="zoom-level" id="zoomLevel">100%</div>
+              <div class="zoom-presets">
+                <button class="zoom-btn" onclick="setZoom(0.5)">50%</button>
+                <button class="zoom-btn active" onclick="setZoom(1)">100%</button>
+                <button class="zoom-btn" onclick="setZoom(2)">200%</button>
+                <button class="zoom-btn" onclick="setZoom(5)">500%</button>
+              </div>
+              <button class="zoom-btn" onclick="resetZoom()">Reset</button>
+              <button class="zoom-btn" onclick="fitToTimeline()">Fit All</button>
+              <div class="zoom-info">Mouse wheel + drag to navigate | Double-click to zoom to point</div>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <div class="legend-line legend-default"></div>
+                <span>Default Rule Period</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-line legend-temporary"></div>
+                <span>Temporary Rule Period</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot"></div>
+                <span>Deadline / Meeting</span>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Append the SVG chart
+        const chartContainer = output.querySelector('.chart-container');
+        chartContainer.appendChild(chartSvg);
+        
+        // Add calendar view
+        output.innerHTML += calendarHTML;
+        
+        // Update zoom level display
+        updateZoomLevel();
+        updateZoomControls();
+        
+        return;
+      }
+
+      // Use default rule logic (either temporary rule disabled or meeting date outside range)
+      const holidays = Array.from(document.getElementById("holidays").selectedOptions).map(opt => opt.value);
+      const holidays50 = Array.from(document.getElementById("holidays50").selectedOptions).map(opt => opt.value);
+
+      function adjustForHoliday(date, targetWeekdays) {
+        let adjustedDate = new Date(date);
+        let moved = false;
+        while (targetWeekdays.includes(adjustedDate.toLocaleDateString('en-US', { weekday: 'long' }))) {
+          adjustedDate.setDate(adjustedDate.getDate() - 1);
+          moved = true;
+        }
+        return { date: adjustedDate, adjusted: moved };
+      }
+
+      const weekStart = new Date(meetingDate);
+      weekStart.setDate(meetingDate.getDate() - meetingDate.getDay() + 1);
+
+      // CORRECTED: HOP 50% should be Thursday of the week that is 2 weeks before meeting week
+      const rawSCIC = new Date(weekStart);
+      rawSCIC.setDate(rawSCIC.getDate() - 17); // Friday 2 weeks before meeting week
+      const scicResult = adjustForHoliday(rawSCIC, holidays);
+
+      const rawHOP100 = new Date(scicResult.date);
+      rawHOP100.setDate(rawHOP100.getDate() - 1); // 1 day before SCIC (Thursday)
+      const hop100Result = adjustForHoliday(rawHOP100, holidays);
+
+      // CORRECTED: HOP 50% is Thursday of the week 2 weeks before meeting week (was incorrectly 1 week)
+      const rawHOP50 = new Date(weekStart);
+      rawHOP50.setDate(rawHOP50.getDate() - 11); // Thursday 2 weeks before meeting week (11 days back)
+      const hop50Result = adjustForHoliday(rawHOP50, holidays50);
+
+      const dates = [
+        scicResult.date.toISOString().split('T')[0],
+        hop100Result.date.toISOString().split('T')[0],
+        hop50Result.date.toISOString().split('T')[0],
+        meetingDate.toISOString().split('T')[0]
+      ];
+      const labels = ['SCIC 100%', 'HOP 100%', 'HOP 50%', 'Meeting Date'];
+      
+      const chartSvg = createTimelineChart(dates, labels, false);
+
+      // Calculate weeks between for display
+      const meetingWeekStart = getWeekStart(meetingDate);
+      const scicWeeks = calculateWeeksBetween(scicResult.date, meetingWeekStart);
+      const hop100Weeks = calculateWeeksBetween(hop100Result.date, meetingWeekStart);
+      const hop50Weeks = calculateWeeksBetween(hop50Result.date, meetingWeekStart);
+
+      // Create calendar view
+      const calendarHTML = createCalendarView(meetingDate, scicResult.date, hop100Result.date, hop50Result.date);
+
+      const output = document.getElementById("output");
+      
+      let explanationText = "How deadlines are calculated:";
+      let additionalInfo = "";
+      
+      if (disableTemporary && !isWithinTempRange) {
+        additionalInfo = "<p><strong>Note:</strong> Temporary rule is enabled but meeting date is outside the temporary rule period, so default rules are applied.</p>";
+      }
+      
+      output.innerHTML = `
+        <div class="result-card fade-in">
+          <div class="timeline">
+            <div class="timeline-item">
+              <strong>Meeting Date:</strong> ${formatDate(meetingDate)}
+              <div class="week-info">Meeting week: ${formatDateRange(meetingWeekStart, new Date(meetingWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000))}</div>
+            </div>
+            <div class="timeline-item">
+              <strong>SCIC 100% Deadline:</strong> ${formatDate(scicResult.date)}
+              <div class="week-info">${scicWeeks} full week${scicWeeks !== 1 ? 's' : ''} between SCIC deadline and meeting week</div>
+            </div>
+            <div class="timeline-item">
+              <strong>HOP - 100% Deadline:</strong> ${formatDate(hop100Result.date)}
+              <div class="week-info">${hop100Weeks} full week${hop100Weeks !== 1 ? 's' : ''} between HOP 100% deadline and meeting week</div>
+            </div>
+            <div class="timeline-item">
+              <strong>HOP - 50% Deadline:</strong> ${formatDate(hop50Result.date)}
+              <div class="week-info">${hop50Weeks} full week${hop50Weeks !== 1 ? 's' : ''} between HOP 50% deadline and meeting week</div>
+            </div>
+          </div>
+          <div class="explanation">
+            <strong>${explanationText}</strong>
+            ${additionalInfo}
+            <p><strong>SCIC:</strong> ${scicResult.adjusted ? "Adjusted for holiday" : "Default rule applied (Friday 2 weeks before meeting week)"}.</p>
+            <p><strong>HOP - 100%:</strong> ${hop100Result.adjusted ? "Adjusted for holiday" : "1 day before SCIC (Thursday)"}.</p>
+            <p><strong>HOP - 50%:</strong> ${hop50Result.adjusted ? "Adjusted for holiday" : "Thursday 2 weeks before meeting week"}.</p>
+          </div>
+        </div>
+        <div class="chart-container fade-in">
+          <div class="chart-title">Key Interpretation Deadlines and Meeting Date</div>
+          <div class="chart-subtitle">Use controls to zoom, or scroll mouse wheel and drag to navigate</div>
+          <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <input type="range" class="zoom-slider" id="zoomSlider" min="10" max="1000" value="100" step="10" onchange="setZoomFromSlider(this.value)">
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+            <div class="zoom-level" id="zoomLevel">100%</div>
+            <div class="zoom-presets">
+              <button class="zoom-btn" onclick="setZoom(0.5)">50%</button>
+              <button class="zoom-btn active" onclick="setZoom(1)">100%</button>
+              <button class="zoom-btn" onclick="setZoom(2)">200%</button>
+              <button class="zoom-btn" onclick="setZoom(5)">500%</button>
+            </div>
+            <button class="zoom-btn" onclick="resetZoom()">Reset</button>
+            <button class="zoom-btn" onclick="fitToTimeline()">Fit All</button>
+            <div class="zoom-info">Mouse wheel + drag to navigate | Double-click to zoom to point</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-line legend-default"></div>
+              <span>Default Rule Period</span>
+            </div>
+            ${disableTemporary ? `
+            <div class="legend-item">
+              <div class="legend-line legend-temporary"></div>
+              <span>Temporary Rule Period</span>
+            </div>` : ''}
+            <div class="legend-item">
+              <div class="legend-dot"></div>
+              <span>Deadline / Meeting</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Append the SVG chart
+      const chartContainer = output.querySelector('.chart-container');
+      chartContainer.appendChild(chartSvg);
+      
+      // Add calendar view
+      output.innerHTML += calendarHTML;
+      
+      // Update zoom level display
+      updateZoomLevel();
+      updateZoomControls();
+    }
+
+    function formatDate(date) {
+      return `${date.toLocaleDateString('en-GB')} (${date.toLocaleDateString('en-US', { weekday: 'long' })})`;
+    }
+
+    function formatDateRange(startDate, endDate) {
+      const start = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+      const end = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      return `${start}–${end}`;
+    }
+
+    function createCalendarView(meetingDate, scicDate, hop100Date, hop50Date) {
+      const dates = [meetingDate, scicDate, hop100Date, hop50Date];
+      const minDate = new Date(Math.min(...dates));
+      const maxDate = new Date(Math.max(...dates));
+      
+      // Determine months to display (with padding)
+      const startMonth = new Date(minDate.getFullYear(), minDate.getMonth() - 1, 1);
+      const endMonth = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 1);
+      
+      const months = [];
+      const current = new Date(startMonth);
+      while (current <= endMonth) {
+        months.push(new Date(current));
+        current.setMonth(current.getMonth() + 1);
+      }
+
+      let calendarHTML = `
+        <div class="calendar-container fade-in">
+          <div class="calendar-title">Calendar View</div>
+          <div class="calendar-subtitle">Deadlines and Meeting Schedule</div>
+          <div class="calendar-grid">
+      `;
+
+      months.forEach(month => {
+        calendarHTML += createMonthCalendar(
+          month, 
+          meetingDate, scicDate, hop100Date, hop50Date
+        );
+      });
+
+      calendarHTML += `
+          </div>
+          <div class="calendar-notes">
+            <div class="calendar-note">
+              <div class="calendar-note-dot note-meeting"></div>
+              <span>Meeting Date</span>
+            </div>
+            <div class="calendar-note">
+              <div class="calendar-note-dot note-scic"></div>
+              <span>SCIC Deadline</span>
+            </div>
+            <div class="calendar-note">
+              <div class="calendar-note-dot note-hop-100"></div>
+              <span>HOP 100% Deadline</span>
+            </div>
+            <div class="calendar-note">
+              <div class="calendar-note-dot note-hop-50"></div>
+              <span>HOP 50% Deadline</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      return calendarHTML;
+    }
+
+    function createMonthCalendar(month, meetingDate, scicDate, hop100Date, hop50Date) {
+      
+      const year = month.getFullYear();
+      const monthIndex = month.getMonth();
+      const monthName = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      // Get first day of month and calculate starting date for calendar grid
+      const firstDay = new Date(year, monthIndex, 1);
+      const lastDay = new Date(year, monthIndex + 1, 0);
+      
+      // Calculate the starting date (Monday of the week containing the first day)
+      const startDate = new Date(firstDay);
+      const dayOfWeek = firstDay.getDay();
+      const diff = firstDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      startDate.setDate(diff);
+      
+      let html = `
+        <div class="month-calendar">
+          <div class="month-header">${monthName}</div>
+          <div class="calendar-weekdays">
+            <div class="calendar-weekday">Mon</div>
+            <div class="calendar-weekday">Tue</div>
+            <div class="calendar-weekday">Wed</div>
+            <div class="calendar-weekday">Thu</div>
+            <div class="calendar-weekday">Fri</div>
+            <div class="calendar-weekday">Sat</div>
+            <div class="calendar-weekday">Sun</div>
+          </div>
+          <div class="calendar-days">
+      `;
+
+      // Generate 6 weeks of days
+      const currentDate = new Date(startDate);
+      for (let week = 0; week < 6; week++) {
+        for (let day = 0; day < 7; day++) {
+          const dayClasses = ['calendar-day'];
+          
+          // Check if day is in current month
+          if (currentDate.getMonth() !== monthIndex) {
+            dayClasses.push('other-month');
+          }
+          
+          // Check for specific dates only (no week highlighting)
+          if (isSameDate(currentDate, meetingDate)) {
+            dayClasses.push('meeting-date');
+          } else if (isSameDate(currentDate, scicDate)) {
+            dayClasses.push('scic-deadline');
+          } else if (isSameDate(currentDate, hop100Date)) {
+            dayClasses.push('hop-100-deadline');
+          } else if (isSameDate(currentDate, hop50Date)) {
+            dayClasses.push('hop-50-deadline');
+          }
+          
+          html += `<div class="${dayClasses.join(' ')}">${currentDate.getDate()}</div>`;
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        // Stop generating weeks if we're past the current month and have shown at least 4 weeks
+        if (week >= 3 && currentDate.getMonth() !== monthIndex) {
+          break;
+        }
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+      
+      return html;
+    }
+
+    function isSameDate(date1, date2) {
+      return date1.getFullYear() === date2.getFullYear() &&
+             date1.getMonth() === date2.getMonth() &&
+             date1.getDate() === date2.getDate();
+    }
+
+    function isDateInRange(date, startDate, endDate) {
+      return date >= startDate && date <= endDate;
+    }
+
+    function resetFields() {
+      document.getElementById("meetingDate").value = "2025-12-30";
+      document.getElementById("defaultStart").value = "2025-01-01";
+      document.getElementById("defaultEnd").value = "2025-12-31";
+      document.getElementById("tempStart").value = "2025-12-24";
+      document.getElementById("tempEnd").value = "2026-01-06";
+      document.getElementById("defineSCIC").value = "2025-12-28";
+      document.getElementById("defineHOP50").value = "2025-12-29";
+      document.getElementById("defineHOP100").value = "2025-12-30";
+      document.getElementById("disableTemporary").checked = false;
+      document.getElementById("holidays").selectedIndex = -1;
+      document.getElementById("holidays50").selectedIndex = -1;
+      document.getElementById("output").innerHTML = "";
+    }
+
+    // Add some interactive feedback
+    document.querySelectorAll('input, select').forEach(element => {
+      element.addEventListener('focus', function() {
+        this.style.transform = 'scale(1.02)';
+      });
+      
+      element.addEventListener('blur', function() {
+        this.style.transform = 'scale(1)';
+      });
+    });
+
+    // Prevent temporary rule enabling if deadlines are not defined
+    document.getElementById('disableTemporary').addEventListener('change', function() {
+      if (this.checked) {
+        const scic = document.getElementById("defineSCIC").value;
+        const hop100 = document.getElementById("defineHOP50").value;
+        const hop50 = document.getElementById("defineHOP100").value;
+        
+        if (!scic || !hop100 || !hop50) {
+          this.checked = false;
+          document.getElementById("output").innerHTML = `
+            <div class="result-card fade-in">
+              <div class="error">
+                Cannot enable Temporary Rule: Please define all deadline dates (SCIC Cancellation Deadline, HOP - 100% Deadline, and HOP - 50% Deadline) before enabling the temporary rule.
+              </div>
+            </div>
+          `;
+          return;
+        }
+        // Clear any previous error messages when successfully enabled
+        document.getElementById("output").innerHTML = "";
+      }
+    });
+  </script>
+</body>
+</html>
